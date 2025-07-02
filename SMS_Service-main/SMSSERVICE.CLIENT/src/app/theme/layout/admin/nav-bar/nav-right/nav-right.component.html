@@ -1,0 +1,32 @@
+<div class="ms-auto">
+  <ul class="list-unstyled">
+    <li>
+
+    </li>
+    <li>
+      <div class="dropdown pc-h-item header-user-profile" ngbDropdown>
+        <a (click)="toggleMenu()" class="pc-head-link head-link-primary dropdown-toggle arrow-none me-0"
+          data-bs-toggle="dropdown" href="javascript:" ngbDropdownToggle>
+          <img src="../../../../../../assets/images/profile.jpg" alt="user-image" class="user-avtar" />
+          <span>
+            <i class="ti ti-settings"></i>
+          </span>
+        </a>
+
+
+        <div *ngIf="menuVisible" class="topbar-dropdown">
+          <ul>
+
+            <li class="menu-d" (click)="handleForceLogout()" style="cursor: pointer; ">
+              <i class="pi pi-sign-out"></i>
+              <span class="ml-2"> Log Out</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+
+    </li>
+  </ul>
+</div>
