@@ -50,7 +50,16 @@
                       <p class="mb-0 opacity-50">Total Earning</p>
                     </div>
                     <div class="col-6">
-                      <div id="tab-chart-1"></div>
+                      <apx-chart
+                        [series]="monthOptions.series"
+                        [chart]="monthOptions.chart"
+                        [dataLabels]="monthOptions.dataLabels"
+                        [stroke]="monthOptions.stroke"
+                        [colors]="monthOptions.colors"
+                        [tooltip]="monthOptions.tooltip"
+                        [yaxis]="monthOptions.yaxis"
+                      >
+                      </apx-chart>
                     </div>
                   </div>
                 </ng-template>
@@ -64,7 +73,16 @@
                       <p class="mb-0 opacity-50">C/W Last Year</p>
                     </div>
                     <div class="col-6">
-                      <div id="tab-chart-2"></div>
+                      <apx-chart
+                        [series]="yearOptions.series"
+                        [chart]="yearOptions.chart"
+                        [dataLabels]="yearOptions.dataLabels"
+                        [stroke]="yearOptions.stroke"
+                        [colors]="yearOptions.colors"
+                        [tooltip]="yearOptions.tooltip"
+                        [yaxis]="yearOptions.yaxis"
+                      >
+                      </apx-chart>
                     </div>
                   </div>
                 </ng-template>

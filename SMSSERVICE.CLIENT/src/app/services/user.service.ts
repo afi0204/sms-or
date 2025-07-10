@@ -32,6 +32,10 @@ initializeSignalRConnection(token: string): Promise<void> {
   return this.hubConnection.start()
     .then(() => {
       console.log('SignalR Connection Established');
+      // Listen for hub events here to centralize logic
+      this.hubConnection.on('ForceLogout', () => {
+        this.forceLogout();
+      });
     })
     .catch(err => {
       console.error('SignalR Connection Error: ', err);
@@ -82,32 +86,26 @@ initializeSignalRConnection(token: string): Promise<void> {
   //   return this.http.get(this.BaseURI + '/UserProfile');
   // }
 
-  roleMatch(allowedRoles: any): boolean {
-    var isMatch = false;
-    var token = sessionStorage.getItem('token');
+  roleMatch(allowedRoles: string[]): boolean {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      return false;
+    }
 
-    //var payLoad = token ? JSON.parse(window.atob(token!.split('.')[1])) : "";
-    var payLoad = {
-      userId: '7cd878f5-8d25-494d-899c-a9d46ebf12c9',
-      organizationId: '5e3167c2-a5ba-42b9-886c-1289d225f054',
-      name: 'DAFTech Social ICT Solution ዳፍቴክ ሶሻል',
-      photo: 'wwwroot\\Employee\\02956bca-dc74-4a9c-9591-95d8d86accc5.png',
-      role: 'Admin',
-      nbf: 1699022430,
-      exp: 1699026030,
-      iat: 1699022430
-    };
-
-    var userRole: string[] = payLoad ? payLoad.role.split(',') : [];
-    allowedRoles.forEach((element: any) => {
-      if (userRole.includes(element)) {
-        isMatch = true;
+    try {
+      const payLoad = this.decodeJWT(token)?.payload;
+      if (!payLoad || !payLoad.role) {
         return false;
-      } else {
-        return true;
       }
-    });
-    return isMatch;
+
+      const userRoles: string[] = Array.isArray(payLoad.role) ? payLoad.role.map(String) : String(payLoad.role).split(',');
+
+      // Use .some() for a more efficient and correct check
+      return allowedRoles.some((role) => userRoles.includes(role));
+    } catch (error) {
+      console.error('Error decoding JWT in roleMatch', error);
+      return false;
+    }
   }
 
   getRoles() {
@@ -117,7 +115,7 @@ initializeSignalRConnection(token: string): Promise<void> {
   getCurrentUser() {
     var token = sessionStorage.getItem('token');
 
-    var payLoad = this.decodeJWT(token);
+    const payLoad = this.decodeJWT(token);
 
     if (payLoad) {
       var userValue = payLoad.payload;
@@ -137,27 +135,30 @@ initializeSignalRConnection(token: string): Promise<void> {
     return null;
   }
 
-  decodeJWT(token) {
-    // Split the token into its three parts
-    const [headerB64, payloadB64, signature] = token.split('.');
-
-    // Decode the header and payload
-    function decodeBase64Url(str) {
-      str = str.replace(/-/g, '+').replace(/_/g, '/');
-      return decodeURIComponent(
-        atob(str)
-          .split('')
-          .map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join('')
-      );
+  private decodeJWT(token: string | null): { header: any; payload: any; signature: string } | null {
+    if (!token) {
+      return null;
     }
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid JWT: The token must have 3 parts');
+      }
+      const [headerB64, payloadB64, signature] = parts;
 
-    const header = JSON.parse(decodeBase64Url(headerB64));
-    const payload = JSON.parse(decodeBase64Url(payloadB64));
+      const payloadJson = decodeURIComponent(
+        atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+      );
 
-    return { header, payload, signature };
+      const headerJson = decodeURIComponent(
+        atob(headerB64.replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+      );
+
+      return { header: JSON.parse(headerJson), payload: JSON.parse(payloadJson), signature };
+    } catch (error) {
+      console.error('Failed to decode JWT', error);
+      return null;
+    }
   }
 
   changePassword(formData: ChangePasswordModel) {

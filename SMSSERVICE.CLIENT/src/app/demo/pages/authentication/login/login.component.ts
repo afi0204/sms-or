@@ -37,7 +37,6 @@ export default class LoginComponent implements OnInit, OnDestroy {
   remainingTime: number = 0;
   private countdownSubscription: Subscription | null = null;
   private forceLogoutSubscription: Subscription;
-  hubConnection:any
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
@@ -72,24 +71,17 @@ export default class LoginComponent implements OnInit, OnDestroy {
             this.messageService.add({ severity: 'success', summary: 'Successful', detail: res.message });
             sessionStorage.setItem('token', res.data);
             this.userService.initializeSignalRConnection(res.data)
-            .then(() => {
-              this.hubConnection.on('ForceLogout', () => {
-                this.handleForceLogout();
-              });
-            })
-            .catch(err => {
-              console.error('Failed to initialize SignalR connection:', err);
-            });
+              .catch(err => console.error('Failed to initialize SignalR connection:', err));
             this.router.navigateByUrl('/');
           } else if (res.errorCode === 5232 && res.data?.requireForceLogout) {
             this.showForceLogoutPrompt = true;
             this.errorMessage = res.message;
-          } 
+          }
          else if (res.errorCode === 5234 ) {
           console.log(res)
           this.handleLockOutError(res)
-        } 
-          
+        }
+
           else {
             this.messageService.add({ severity: 'error', summary: 'Authentication failed.', detail: res.message });
           }
@@ -143,7 +135,7 @@ export default class LoginComponent implements OnInit, OnDestroy {
   private startCountdown() {
     this.stopCountdown(); // Ensure any existing countdown is stopped
     this.countdownSubscription = interval(1000).subscribe(() => {
-     
+
         if (this.remainingTime > 0) {
           this.remainingTime-=1;
           this.updateErrorMessage();
@@ -154,12 +146,12 @@ export default class LoginComponent implements OnInit, OnDestroy {
       ;
     });
   }
-  
+
   private updateErrorMessage() {
     const minutes = Math.floor(this.remainingTime / 60);
     const seconds = this.remainingTime % 60;
     this.errorMessage = `Account is locked out. Please try again after ${minutes} minutes and ${seconds} seconds.`;
-    
+
     // Force change detection to update the view
     this.cdr.detectChanges();
   }
@@ -180,22 +172,22 @@ export default class LoginComponent implements OnInit, OnDestroy {
 
   private handleLockOutError(res: any) {
     this.errorCode = res.errorCode;
-    
+
     // Extract remaining time from API response
     const remainingTimeStr = res.data?.remainingLockoutTime;
     if (remainingTimeStr) {
       // Parse the time string to seconds
       this.remainingTime = this.parseRemainingTime(remainingTimeStr);
-      
+
       if (this.remainingTime > 0) {
         this.startCountdown();
       } else {
         this.clearErrorMessage();
       }
-      
+
       // Set the error message from the API response
       this.errorMessage = res.message;
-      
+
       // Update the message displayed by the message service
       this.messageService.add({
         severity: 'error',
@@ -206,35 +198,35 @@ export default class LoginComponent implements OnInit, OnDestroy {
       console.error('Unexpected remainingLockoutTime format');
     }
   }
-  
+
   private parseRemainingTime(timeStr: string): number {
     // Split the time string into hours, minutes, and seconds
     const timeParts = timeStr.split(':');
-    
+
     if (timeParts.length !== 3) {
       console.error('Unexpected time format');
       return 0;
     }
-  
+
     const hours = parseInt(timeParts[0], 10) || 0;
     const minutes = parseInt(timeParts[1], 10) || 0;
-  
+
     // Handle seconds and milliseconds
     const secondsAndMillis = timeParts[2].split('.');
     const seconds = parseInt(secondsAndMillis[0], 10) || 0;
     //const milliseconds = parseInt(secondsAndMillis[1] || '0', 10);
-  
+
     // Calculate total seconds
     const totalSeconds = (hours * 3600) + (minutes * 60) + seconds ;
-  
+
     console.log(`Parsed time: ${hours} hours, ${minutes} minutes, ${seconds} seconds milliseconds`);
     console.log(`Total seconds: ${totalSeconds}`);
-    
+
     return totalSeconds;
   }
-  
-  
-  
-    
-  
+
+
+
+
+
 }

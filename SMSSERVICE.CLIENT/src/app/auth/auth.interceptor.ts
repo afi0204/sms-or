@@ -12,26 +12,25 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        if (localStorage.getItem('token') != null) {
+        // Use sessionStorage consistently, as it's used in your AuthGuard
+        const token = sessionStorage.getItem('token');
+        if (token) {
             const clonedReq = req.clone({
-                headers: req.headers.set('Authorization', 'Bearer ' + sessionStorage.getItem('token'))
+                headers: req.headers.set('Authorization', 'Bearer ' + token)
             });
             return next.handle(clonedReq).pipe(
-                tap(
-                    succ => { },
-                    err => {
-                        if (err.status == 401){
+                tap({
+                    error: (err) => {
+                        // For 401 or 403 errors, remove token and redirect to login
+                        if (err.status === 401 || err.status === 403) {
                             sessionStorage.removeItem('token');
-                            this.router.navigateByUrl('auth/login');
+                            this.router.navigateByUrl('/auth/login');
                         }
-                        else if(err.status == 403)
-                            sessionStorage.removeItem('token');
-                        this.router.navigateByUrl('/auth/login');
                     }
-                )
-            )
+                })
+            );
         }
-        else
-            return next.handle(req.clone());
+
+        return next.handle(req);
     }
 }

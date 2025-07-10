@@ -10,18 +10,18 @@ import { NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 
 // third party
 import { NgApexchartsModule } from 'ng-apexcharts';
-import ApexCharts from 'apexcharts';
 import {
   ApexAxisChartSeries,
   ApexChart,
+  ApexStroke,
   ChartComponent,
   ApexDataLabels,
   ApexPlotOptions,
   ApexResponsive,
   ApexXAxis,
   ApexGrid,
-  ApexStroke,
-  ApexTooltip
+   ApexTooltip,
+  ApexYAxis
 } from 'ng-apexcharts';
 
 export type ChartOptions = {
@@ -35,6 +35,7 @@ export type ChartOptions = {
   grid: ApexGrid;
   tooltip: ApexTooltip;
   stroke: ApexStroke;
+  yaxis: ApexYAxis;
 };
 
 @Component({
@@ -50,8 +51,6 @@ export default class DefaultComponent {
   chartOptions: Partial<ChartOptions>;
   @ViewChild('bajajchart') bajajchart: ChartComponent;
   chartOptions1: Partial<ChartOptions>;
-  monthChart: any;
-  yearChart: any;
   colorChart = ['#673ab7'];
 
   // Constructor
@@ -140,28 +139,12 @@ export default class DefaultComponent {
   }
 
   // Life cycle events
-  ngOnInit(): void {
-    setTimeout(() => {
-      this.monthChart = new ApexCharts(document.querySelector('#tab-chart-1'), this.monthOptions);
-      this.monthChart.render();
-    }, 500);
-  }
+  ngOnInit(): void {}
 
   // public Method
   onNavChange(changeEvent: NgbNavChangeEvent) {
-    if (changeEvent.nextId === 1) {
-      setTimeout(() => {
-        this.monthChart = new ApexCharts(document.querySelector('#tab-chart-1'), this.monthOptions);
-        this.monthChart.render();
-      }, 200);
-    }
-
-    if (changeEvent.nextId === 2) {
-      setTimeout(() => {
-        this.yearChart = new ApexCharts(document.querySelector('#tab-chart-2'), this.yearOptions);
-        this.yearChart.render();
-      }, 200);
-    }
+    // This method is now only a listener for the nav change event.
+    // The declarative <apx-chart> handles rendering automatically.
   }
 
   ListGroup = [
@@ -207,9 +190,9 @@ export default class DefaultComponent {
     }
   ];
 
-  monthOptions = {
+  monthOptions: Partial<ChartOptions> = {
     chart: {
-      type: 'line',
+      type: 'line' as const,
       height: 90,
       sparkline: {
         enabled: true
@@ -220,7 +203,7 @@ export default class DefaultComponent {
     },
     colors: ['#FFF'],
     stroke: {
-      curve: 'smooth',
+      curve: 'smooth' as const,
       width: 3
     },
     series: [
@@ -254,9 +237,9 @@ export default class DefaultComponent {
     }
   };
 
-  yearOptions = {
+  yearOptions: Partial<ChartOptions> = {
     chart: {
-      type: 'line',
+      type: 'line' as const,
       height: 90,
       sparkline: {
         enabled: true
@@ -267,7 +250,7 @@ export default class DefaultComponent {
     },
     colors: ['#FFF'],
     stroke: {
-      curve: 'smooth',
+      curve: 'smooth' as const,
       width: 3
     },
     series: [

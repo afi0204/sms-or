@@ -15,7 +15,8 @@ export class AuthGuard implements CanActivate {
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): boolean {
-    if (sessionStorage.getItem('token') != null && sessionStorage.getItem('token') != "") {
+    // A simpler truthy check is sufficient
+    if (sessionStorage.getItem('token')) {
 
       let roles = next.data['permittedRoles'] as Array<string>;
 
@@ -34,9 +35,5 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
-  }
-  logout() {
-    sessionStorage.setItem('token', "")
-    window.location.reload()
   }
 }
